@@ -103,3 +103,16 @@ def claim_badge_view(request, badge_id: str):
         return Response({"success": True, "badge_id": badge_id})
     else:
         return Response({"success": False, "message": "Badge not found or already claimed"}, status=400)
+
+# -----------------------------
+# Intro endpoints
+# -----------------------------
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def complete_intro_view(request):
+    """Mark intro animation as completed for the user"""
+    user: CustomUser = request.user
+    user.has_completed_intro = True
+    user.save()
+    serializer = CustomUserSerializer(user)
+    return Response(serializer.data)

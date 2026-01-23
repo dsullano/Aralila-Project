@@ -23,6 +23,7 @@ interface User {
   }>;
   current_hearts?: number;
   next_refill_at?: string | null;
+  has_completed_intro?: boolean;
 }
 
 interface AuthContextType {
@@ -31,6 +32,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateProfile: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         collected_badges: data.collected_badges || [],
         current_hearts: data.current_hearts ?? 3,
         next_refill_at: data.next_refill_at,
+        has_completed_intro: data.has_completed_intro || false,
       };
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -182,9 +185,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = (userData: Partial<User>) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      return { ...prevUser, ...userData };
+    });
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, logout, refreshUser }}
+      value={{ user, isLoading, login, logout, refreshUser, updateProfile }}
     >
       <ExitModal />
       {children}

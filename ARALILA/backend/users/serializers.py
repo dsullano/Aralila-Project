@@ -20,6 +20,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'current_hearts', 
             'next_refill_at',
+            'has_completed_intro',
         ]
         read_only_fields = [
             'supabase_user_id',

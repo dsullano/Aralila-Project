@@ -25,6 +25,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     current_hearts = models.IntegerField(default=3)
     next_refill_at = models.DateTimeField(null=True, blank=True)
 
+    has_completed_intro = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

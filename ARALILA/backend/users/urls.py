@@ -13,4 +13,7 @@ urlpatterns = [
     # Badge endpoints
     path('badges/', views.user_badges_view, name='user-badges'),
     path('badges/<str:badge_id>/claim/', views.claim_badge_view, name='claim-badge'),
+    
+    # Intro endpoints
+    path('intro/complete/', views.complete_intro_view, name='complete-intro'),
 ]
