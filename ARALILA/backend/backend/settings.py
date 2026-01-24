@@ -23,14 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ✅ DEBUG: Print which env file is being used
 env_file = BASE_DIR / '.env.local'
-print(f"🔍 Looking for env file at: {env_file}")
-print(f"🔍 Env file exists: {env_file.exists()}")
+print(f"Looking for env file at: {env_file}")
+print(f"Env file exists: {env_file.exists()}")
 
 load_dotenv(env_file)
 
 # ✅ DEBUG: Print the Redis URL being used
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-print(f"🔍 REDIS_URL: {REDIS_URL}")
+print(f"REDIS_URL: {REDIS_URL}")
 
 
 # Quick-start development settings - unsuitable for production
@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "users",
     "rest_framework",
     "rest_framework_simplejwt",
+    "reports",
 ]
 
 MIDDLEWARE = [
@@ -136,15 +137,15 @@ ASGI_APPLICATION = "backend.asgi.application"
 # CHANGED: Use Redis URL from environment variable
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
 
-print(f"🔧 Redis URL: {REDIS_URL}")
+print(f"Redis URL: {REDIS_URL}")
 
 try:
     import redis
     r = redis.from_url(REDIS_URL)
     r.ping()
-    print("✅ Redis connected successfully")
+    print("Redis connected successfully")
 except Exception as e:
-    print(f"❌ Redis connection failed: {e}")
+    print(f"Redis connection failed: {e}")
 
 # WebSocket Configuration
 WEBSOCKET_ALLOWED_ORIGINS = [

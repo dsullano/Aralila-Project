@@ -24,6 +24,7 @@ interface User {
   current_hearts?: number;
   next_refill_at?: string | null;
   has_completed_intro?: boolean;
+  is_staff?: boolean;
 }
 
 interface AuthContextType {
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         current_hearts: data.current_hearts ?? 3,
         next_refill_at: data.next_refill_at,
         has_completed_intro: data.has_completed_intro || false,
+        is_staff: data.is_staff || false,
       };
     } catch (error) {
       console.error("Error fetching user profile:", error);

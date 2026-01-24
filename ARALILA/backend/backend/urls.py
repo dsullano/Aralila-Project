@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/games/', include("games.urls")),
     path('api/users/', include('users.urls')),
     path('api/progress/', include('progress.urls')),
+    path('api/reports/', include('reports.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

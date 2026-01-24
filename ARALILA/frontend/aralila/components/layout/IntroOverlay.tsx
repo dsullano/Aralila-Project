@@ -9,21 +9,32 @@ interface IntroOverlayProps {
 }
 
 export default function IntroOverlay({ children }: IntroOverlayProps) {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, isLoading: authLoading } = useAuth();
   const [showIntro, setShowIntro] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check if user has completed intro
-    if (user && !user.has_completed_intro) {
-      setShowIntro(true);
+    if (authLoading) return;
+
+    // Only show intro for authenticated users who haven't completed it yet
+    const token = localStorage.getItem('access_token');
+
+    if (token && user) {
+      if (!user.has_completed_intro) {
+        setShowIntro(true);
+      } else {
+        setShowIntro(false);
+      }
+    } else {
+      setShowIntro(false);
     }
-    setIsLoading(false);
-  }, [user]);
+
+    setIsChecking(false);
+  }, [user, authLoading]);
 
   const handleIntroComplete = async () => {
     setShowIntro(false);
-    
+
     // Call API to mark intro as completed
     try {
       const response = await fetch('/api/users/intro/complete/', {
@@ -35,10 +46,9 @@ export default function IntroOverlay({ children }: IntroOverlayProps) {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // Update the user context
+        // Optimistically update context to prevent flash
         if (updateProfile) {
-          updateProfile(data);
+          updateProfile({ ...user, has_completed_intro: true });
         }
       }
     } catch (error) {
@@ -46,7 +56,7 @@ export default function IntroOverlay({ children }: IntroOverlayProps) {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isChecking) {
     return <>{children}</>;
   }
 

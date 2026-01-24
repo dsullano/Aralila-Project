@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const menuContainerVariants = {
   open: {
@@ -30,6 +31,23 @@ interface FullscreenMenuProps {
   menuOpen: boolean;
   setMenuOpen: (value: boolean) => void;
 }
+
+const AuthAwareMenuItems = ({ setMenuOpen }: { setMenuOpen: (value: boolean) => void }) => {
+  const { user } = useAuth();
+
+  if (!user?.is_staff) return null;
+
+  return (
+    <motion.a
+      variants={menuItemVariants}
+      href="/admin/reports"
+      onClick={() => setMenuOpen(false)}
+      className="text-red-700 hover:text-red-900 font-bold text-3xl"
+    >
+      Admin Reports
+    </motion.a>
+  );
+};
 
 const FullscreenMenu: React.FC<FullscreenMenuProps> = ({
   menuOpen,
@@ -101,7 +119,19 @@ const FullscreenMenu: React.FC<FullscreenMenuProps> = ({
               >
                 Logout
               </motion.button>
-              {/* <motion.a variants={menuItemVariants} href="/student/learn" onClick={() => setMenuOpen(false)} className="text-slate-700 hover:text-purple-700 font-bold text-5xl">Learn</motion.a> */}
+
+              <div className="border-t border-gray-200 w-full my-2"></div>
+
+              <motion.a
+                variants={menuItemVariants}
+                href="/report"
+                onClick={() => setMenuOpen(false)}
+                className="text-slate-700 hover:text-purple-700 font-bold text-3xl"
+              >
+                Report Issue
+              </motion.a>
+
+              <AuthAwareMenuItems setMenuOpen={setMenuOpen} />
             </nav>
           </motion.div>
         </motion.div>
