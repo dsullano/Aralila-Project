@@ -3,6 +3,15 @@ from .models import CustomUser
 
 class CustomUserSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
+    profile_pic = serializers.SerializerMethodField()
+
+    def get_profile_pic(self, obj):
+        if obj.avatar_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar_image.url)
+            return obj.avatar_image.url
+        return obj.profile_pic
     
     class Meta:
         model = CustomUser
@@ -14,6 +23,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'full_name',
             'school_name',
             'profile_pic',
+            'avatar_image',
             'ls_points',           
             'collected_badges',    
             'is_active',

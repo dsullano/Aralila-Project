@@ -169,14 +169,14 @@ export default function UserProfile() {
   // Convert collected badges to achievements
   const achievements: Achievement[] = userData
     ? Object.entries(BADGE_DEFINITIONS).map(([id, badge]) => {
-        const collected = userData.collectedBadges.find((b) => b.id === id);
-        return {
-          id,
-          ...badge,
-          unlocked: !!collected,
-          status: collected?.status || "locked",
-        };
-      })
+      const collected = userData.collectedBadges.find((b) => b.id === id);
+      return {
+        id,
+        ...badge,
+        unlocked: !!collected,
+        status: collected?.status || "locked",
+      };
+    })
     : [];
 
   // XP Calculation
@@ -264,11 +264,10 @@ export default function UserProfile() {
         {/* --- LEFT SIDE: Lila & Speech Bubble --- */}
         <div className="hidden md:flex flex-1 h-full items-end justify-center relative pointer-events-none select-none">
           <div
-            className={`absolute bottom-[65%] left-1/2 -translate-x-1/2 w-64 bg-white text-slate-900 p-6 rounded-3xl rounded-bl-none shadow-[0_0_20px_rgba(255,255,255,0.4)] transform transition-all duration-500 ease-in-out z-20 ${
-              fadeQuote
+            className={`absolute bottom-[65%] left-1/2 -translate-x-1/2 w-64 bg-white text-slate-900 p-6 rounded-3xl rounded-bl-none shadow-[0_0_20px_rgba(255,255,255,0.4)] transform transition-all duration-500 ease-in-out z-20 ${fadeQuote
                 ? "opacity-0 translate-y-2"
                 : "opacity-100 translate-y-0"
-            }`}
+              }`}
           >
             <p className="font-bold text-lg text-center leading-snug font-comic">
               "{quote}"
@@ -291,7 +290,11 @@ export default function UserProfile() {
           <div className="w-full max-w-lvw animate-in slide-in-from-right-10 duration-700">
             <div className="backdrop-blur-xl bg-slate-900/70 border border-white/20 shadow-[0_0_50px_rgba(139,92,246,0.25)] rounded-3xl text-white p-6 pt-16 relative max-h-[calc(100vh-10rem)] flex flex-col">
               {/* --- Avatar (Floating Top) --- */}
-              <div className="absolute -top-12 left-8 w-24 h-24 group cursor-pointer z-50">
+              <div
+                className="absolute -top-12 left-8 w-24 h-24 group cursor-pointer z-50"
+                onClick={() => router.push('/student/profile/edit')}
+                title="Change Avatar"
+              >
                 <div className="relative w-full h-full">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 to-purple-600 blur-md opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative w-full h-full rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-xl">
@@ -306,6 +309,15 @@ export default function UserProfile() {
                   </div>
                 </div>
               </div>
+
+              {/* Edit Profile Button (Absolute Top Right) */}
+              <button
+                onClick={() => router.push('/student/profile/edit')}
+                className="absolute top-6 right-6 z-50 p-2 bg-slate-800/80 hover:bg-slate-700 border border-white/20 rounded-full text-white/70 hover:text-white transition-all group"
+                title="Edit Profile"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-edit-2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+              </button>
 
               {/* Scrollable content wrapper */}
               <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar scrollbar-hide">
@@ -408,11 +420,10 @@ export default function UserProfile() {
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab as any)}
-                      className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all duration-300 capitalize ${
-                        activeTab === tab
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all duration-300 capitalize ${activeTab === tab
                           ? "bg-purple-600 text-white shadow-md"
                           : "text-slate-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       {tab}
                     </button>
@@ -442,18 +453,16 @@ export default function UserProfile() {
                       {achievements.map((ach) => (
                         <div
                           key={ach.id}
-                          className={`p-2 rounded-lg border flex flex-col items-center text-center gap-1 ${
-                            ach.unlocked
+                          className={`p-2 rounded-lg border flex flex-col items-center text-center gap-1 ${ach.unlocked
                               ? "bg-slate-800/60 border-purple-500/30"
                               : "bg-slate-900/40 border-slate-700/50 opacity-60 grayscale"
-                          }`}
+                            }`}
                         >
                           <div
-                            className={`p-1.5 rounded-full ${
-                              ach.unlocked
+                            className={`p-1.5 rounded-full ${ach.unlocked
                                 ? "bg-purple-500/20 text-purple-300"
                                 : "bg-slate-700/30 text-slate-500"
-                            }`}
+                              }`}
                           >
                             {ach.icon}
                           </div>

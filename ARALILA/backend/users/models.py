@@ -18,6 +18,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255, blank=True)
     school_name = models.CharField(max_length=255, blank=True, null=True)
     profile_pic = models.CharField(max_length=255, choices=ProfilePicEnum.choices, blank=True)
+    avatar_image = models.ImageField(upload_to='avatars/', blank=True, null=True)
     
     ls_points = models.IntegerField(default=0)  
     collected_badges = models.JSONField(default=list, blank=True, help_text="List of collected badge identifiers")

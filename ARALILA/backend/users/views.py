@@ -22,14 +22,22 @@ def profile_view(request):
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile_view(request):
-    """Update user profile (school_name, profile_pic)"""
+    """Update user profile (school_name, profile_pic, first_name, last_name)"""
     user = request.user
-    allowed_fields = ['school_name', 'profile_pic']
+    allowed_fields = ['school_name', 'profile_pic', 'first_name', 'last_name']
+    
+    # Handle custom avatar upload
+    if 'avatar_image' in request.FILES:
+        user.avatar_image = request.FILES['avatar_image']
+    elif 'profile_pic' in request.data:
+         # If user selected a preset avatar, clear the custom image
+         user.avatar_image = None
+    
     for field in allowed_fields:
         if field in request.data:
             setattr(user, field, request.data[field])
     user.save()
-    serializer = CustomUserSerializer(user)
+    serializer = CustomUserSerializer(user, context={'request': request})
     return Response(serializer.data)
 
 # -----------------------------
