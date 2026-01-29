@@ -3,7 +3,6 @@ import { Outfit, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "../styles/colors.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import IntroOverlay from "@/components/layout/IntroOverlay";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -37,7 +36,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <IntroOverlay>{children}</IntroOverlay>
+          {children}
         </AuthProvider>
       </body>
     </html>
