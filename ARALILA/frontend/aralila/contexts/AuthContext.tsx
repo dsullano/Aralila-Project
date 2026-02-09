@@ -190,7 +190,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = (userData: Partial<User>) => {
     setUser((prevUser) => {
       if (!prevUser) return prevUser;
-      return { ...prevUser, ...userData };
+      const merged = { ...prevUser, ...userData };
+      
+      // Ensure full_name is properly computed from first_name and last_name
+      if (userData.first_name || userData.last_name) {
+        const firstName = userData.first_name ?? prevUser.first_name;
+        const lastName = userData.last_name ?? prevUser.last_name;
+        merged.full_name = `${firstName} ${lastName}`.trim();
+      }
+      
+      return merged;
     });
   };
 

@@ -68,10 +68,18 @@ export default function EditProfilePage() {
             if (!token) throw new Error('Not authenticated');
 
             const formData = new FormData();
+            
+            // Always send name fields
+            console.log('📝 Form data being sent:');
+            console.log('  - first_name:', firstName);
+            console.log('  - last_name:', lastName);
+            console.log('  - school_name:', schoolName);
+            
             formData.append('first_name', firstName);
             formData.append('last_name', lastName);
             formData.append('school_name', schoolName);
 
+            // Avatar handling
             if (customAvatar) {
                 console.log('📸 Uploading custom avatar:', customAvatar.name);
                 formData.append('avatar_image', customAvatar);
@@ -80,9 +88,11 @@ export default function EditProfilePage() {
                 formData.append('profile_pic', selectedAvatar);
             }
 
-            console.log('📤 Sending request to:', `${env.backendUrl}/api/users/profile/update/`);
+            const url = `${env.backendUrl}/api/users/profile/update/`;
+            console.log('📤 Sending PATCH request to:', url);
+            console.log('🔑 Token:', token.substring(0, 20) + '...');
             
-            const response = await fetch(`${env.backendUrl}/api/users/profile/update/`, {
+            const response = await fetch(url, {
                 method: 'PATCH',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -90,29 +100,37 @@ export default function EditProfilePage() {
                 body: formData,
             });
 
+            console.log('📨 Response status:', response.status);
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('❌ Server error:', response.status, errorText);
-                throw new Error(`Failed to update profile: ${response.status}`);
+                throw new Error(`Failed to update profile (${response.status}): ${errorText}`);
             }
 
             const updatedUser = await response.json();
-            console.log('✅ Profile updated:', updatedUser);
-            console.log('📷 Avatar URL returned:', updatedUser.profile_pic);
+            console.log('✅ Profile updated successfully!');
+            console.log('📊 Updated user data:', updatedUser);
+            console.log('📷 first_name:', updatedUser.first_name);
+            console.log('📷 last_name:', updatedUser.last_name);
+            console.log('📷 full_name:', updatedUser.full_name);
+            console.log('📷 profile_pic:', updatedUser.profile_pic);
 
             if (updateProfile) {
+                console.log('🔄 Calling updateProfile to sync AuthContext');
                 updateProfile(updatedUser);
             }
 
             setSuccess('Profile updated successfully!');
 
             setTimeout(() => {
+                console.log('📍 Redirecting to profile page...');
                 router.push('/student/profile');
             }, 1000);
 
         } catch (err: any) {
-            console.error('❌ Error:', err);
-            setError('Failed to update profile. Please try again.');
+            console.error('❌ Error during submit:', err);
+            setError(err.message || 'Failed to update profile. Please try again.');
         } finally {
             setIsSaving(false);
         }

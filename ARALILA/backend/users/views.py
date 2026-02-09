@@ -27,38 +27,73 @@ def update_profile_view(request):
     allowed_fields = ['school_name', 'profile_pic', 'first_name', 'last_name']
     
     try:
+        print("\n" + "="*60)
+        print("🔍 UPDATE PROFILE REQUEST RECEIVED")
+        print("="*60)
+        print(f"User: {user.email}")
+        print(f"Request method: {request.method}")
+        print(f"Request data keys: {list(request.data.keys())}")
+        print(f"Request FILES keys: {list(request.FILES.keys())}")
+        
+        # Log incoming data
+        print("\n📋 INCOMING DATA:")
+        for field in allowed_fields:
+            value = request.data.get(field, "NOT PROVIDED")
+            print(f"  - {field}: {value} (type: {type(value).__name__})")
+        
         # Handle custom avatar upload
         if 'avatar_image' in request.FILES:
             custom_avatar = request.FILES['avatar_image']
-            print(f"📸 Avatar upload detected: {custom_avatar.name}, Size: {custom_avatar.size} bytes")
+            print(f"\n📸 AVATAR: Custom avatar upload detected")
+            print(f"   - Name: {custom_avatar.name}")
+            print(f"   - Size: {custom_avatar.size} bytes")
+            print(f"   - Content type: {custom_avatar.content_type}")
             user.avatar_image = custom_avatar
         elif 'profile_pic' in request.data:
             # If user selected a preset avatar, clear the custom image
-            print(f"🎨 Preset avatar selected: {request.data['profile_pic']}")
+            preset = request.data['profile_pic']
+            print(f"\n🎨 AVATAR: Preset avatar selected: {preset}")
             user.avatar_image = None
+        else:
+            print(f"\n⚪ AVATAR: No avatar change")
         
         # Update text fields
+        print("\n✏️  UPDATING FIELDS:")
         for field in allowed_fields:
             if field in request.data:
-                setattr(user, field, request.data[field])
+                old_value = getattr(user, field, None)
+                new_value = request.data[field]
+                setattr(user, field, new_value)
+                print(f"  - {field}: '{old_value}' → '{new_value}'")
+            else:
+                print(f"  - {field}: (not provided, keeping '{getattr(user, field, '')}')")
         
+        # Save to database
         user.save()
-        print(f"✅ Profile updated for user: {user.email}")
-        # Debug: print name fields so frontend updates can be verified
+        print(f"\n✅ SAVED TO DATABASE")
         print(f"   - first_name: {user.first_name}")
         print(f"   - last_name: {user.last_name}")
-        print(f"   - avatar_image: {user.avatar_image}")
+        print(f"   - school_name: {user.school_name}")
         print(f"   - profile_pic: {user.profile_pic}")
+        print(f"   - avatar_image: {user.avatar_image.name if user.avatar_image else 'None'}")
         
+        # Serialize response
         serializer = CustomUserSerializer(user, context={'request': request})
         response_data = serializer.data
-        print(f"📤 Response profile_pic URL: {response_data.get('profile_pic')}")
+        
+        print(f"\n📤 RESPONSE DATA:")
+        print(f"   - first_name: {response_data.get('first_name')}")
+        print(f"   - last_name: {response_data.get('last_name')}")
+        print(f"   - full_name: {response_data.get('full_name')}")
+        print(f"   - profile_pic URL: {response_data.get('profile_pic')}")
+        print("="*60 + "\n")
         
         return Response(response_data)
     except Exception as e:
-        print(f"❌ Error updating profile: {str(e)}")
+        print(f"\n❌ ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
+        print("="*60 + "\n")
         return Response({"error": str(e)}, status=400)
 
 # -----------------------------
