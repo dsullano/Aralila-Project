@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Flame,
   Trophy,
@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import AnimatedBackground from "@/components/bg/animated-bg";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
 
 // --- Types ---
 interface Achievement {
@@ -95,76 +96,76 @@ const WORD_OF_THE_DAY = {
   example: "May hiraya manawari.",
 };
 
+// Helper function to resolve avatar URLs
+function resolveAvatarUrl(avatarInput: string | null | undefined): string {
+  if (!avatarInput) return "/images/bear.png";
+  if (avatarInput.startsWith("http://") || avatarInput.startsWith("https://")) return avatarInput;
+  if (avatarInput.startsWith("/media/")) return `${env.backendUrl}${avatarInput}`;
+  return `/images/${avatarInput}.png`;
+}
+
 export default function UserProfile() {
   const [activeTab, setActiveTab] = useState<"stats" | "badges">("stats");
   const [quote, setQuote] = useState(TAGALOG_QUOTES[0]);
   const [fadeQuote, setFadeQuote] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const { user, isLoading: authLoading, refreshUser } = useAuth();
 
-  // Fetch user data
+  // Refresh user data on mount
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    refreshUser().catch(() => {});
+  }, [refreshUser]);
 
-        // Get Supabase session
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError || !session) {
-          throw new Error("Not authenticated");
-        }
-
-        // Call Django backend
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile/`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch profile");
-        }
-
-        const data = await response.json();
-
-        // Transform backend data to frontend format
-        setUserData({
-          username: data.full_name || data.email.split("@")[0],
-          level: Math.floor(data.ls_points / 10) + 1,
-          title: "Forest Explorer",
-          xp: (data.ls_points % 10) * 300,
-          maxXp: 3000,
-          streak: data.ls_points,
-          gems: data.ls_points * 100,
-          avatarUrl: data.profile_pic || "/images/meerkat.png",
-          email: data.email,
-          firstName: data.first_name,
-          lastName: data.last_name,
-          schoolName: data.school_name,
-          collectedBadges: data.collected_badges || [],
-        });
-      } catch (err: any) {
-        console.error("Error fetching user data:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  // Derive userData from AuthContext
+  const userData = useMemo(() => {
+    if (!user) return null;
+    const ls = user.ls_points || 0;
+    return {
+      username: user.full_name || user.email.split("@")[0],
+      level: Math.floor(ls / 10) + 1,
+      title: "Forest Explorer",
+      xp: (ls % 10) * 300,
+      maxXp: 3000,
+      streak: ls,
+      gems: ls * 100,
+      avatarUrl: resolveAvatarUrl(user.profile_pic),
+      email: user.email,
+      firstName: user.first_name || "",
+      lastName: user.last_name || "",
+      schoolName: user.school_name || "",
+      collectedBadges: user.collected_badges || [],
     };
+  }, [user]);
 
-    fetchUserData();
+  // Randomize Quote Logic (hook must be before early returns)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFadeQuote(true);
+      setTimeout(() => {
+        const randomQuote =
+          TAGALOG_QUOTES[Math.floor(Math.random() * TAGALOG_QUOTES.length)];
+        setQuote(randomQuote);
+        setFadeQuote(false);
+      }, 500);
+    }, 8000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-purple-900 via-purple-800 to-black">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+      </div>
+    );
+  }
+
+  // Not authenticated
+  if (!userData) {
+    router.push("/login");
+    return null;
+  }
 
   // Convert collected badges to achievements
   const achievements: Achievement[] = userData
@@ -181,64 +182,6 @@ export default function UserProfile() {
 
   // XP Calculation
   const xpPercentage = userData ? (userData.xp / userData.maxXp) * 100 : 0;
-
-  // Randomize Quote Logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFadeQuote(true);
-      setTimeout(() => {
-        const randomQuote =
-          TAGALOG_QUOTES[Math.floor(Math.random() * TAGALOG_QUOTES.length)];
-        setQuote(randomQuote);
-        setFadeQuote(false);
-      }, 500);
-    }, 8000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Loading Screen
-  if (loading) {
-    return (
-      <div className="h-screen w-full relative overflow-hidden font-sans flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <AnimatedBackground />
-          <div className="absolute inset-0 bg-indigo-950/20 pointer-events-none" />
-        </div>
-        <div className="relative z-10 flex flex-col items-center gap-4">
-          <Loader2 className="w-16 h-16 text-purple-400 animate-spin" />
-          <p className="text-white text-lg font-semibold">
-            Loading your profile...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error Screen
-  if (error || !userData) {
-    return (
-      <div className="h-screen w-full relative overflow-hidden font-sans flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <AnimatedBackground />
-          <div className="absolute inset-0 bg-indigo-950/20 pointer-events-none" />
-        </div>
-        <div className="relative z-10 flex flex-col items-center gap-4 text-center">
-          <div className="text-red-400 text-6xl">⚠️</div>
-          <p className="text-white text-xl font-semibold">
-            Failed to load profile
-          </p>
-          <p className="text-slate-300 text-sm">{error || "Unknown error"}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen w-full relative overflow-hidden font-sans flex items-center justify-center">
@@ -305,7 +248,7 @@ export default function UserProfile() {
                       className="object-cover"
                       sizes="96px"
                       priority
-                      unoptimized={userData.avatarUrl?.startsWith('http') || userData.avatarUrl?.startsWith('/media')}
+                      unoptimized={userData.avatarUrl.startsWith("http")}
                     />
                   </div>
                   <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-600 text-white font-bold text-xs w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-900 z-20">
