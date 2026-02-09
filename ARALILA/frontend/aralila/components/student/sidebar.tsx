@@ -1,5 +1,5 @@
 import SidebarIcon from "./sidebar-icon";
-import { Home, Swords, Settings, Play, BookOpen, ChartBar, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Home, Swords, Settings, Play, BookOpen, ChartBar, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
@@ -10,7 +10,6 @@ const Sidebar = () => {
     { icon: Play, text: "Playground", href: "/student/playground" },
     { icon: Swords, text: "Challenges", href: "/student/challenges" },
     { icon: ChartBar, text: "Analytics", href: "/student/analytics" },
-    { icon: AlertTriangle, text: "Report Issue", href: "/report" },
     { icon: Settings, text: "Settings", href: "#" },
   ];
 

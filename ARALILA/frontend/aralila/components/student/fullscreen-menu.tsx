@@ -122,15 +122,6 @@ const FullscreenMenu: React.FC<FullscreenMenuProps> = ({
 
               <div className="border-t border-gray-200 w-full my-2"></div>
 
-              <motion.a
-                variants={menuItemVariants}
-                href="/report"
-                onClick={() => setMenuOpen(false)}
-                className="text-slate-700 hover:text-purple-700 font-bold text-3xl"
-              >
-                Report Issue
-              </motion.a>
-
               <AuthAwareMenuItems setMenuOpen={setMenuOpen} />
             </nav>
           </motion.div>

@@ -1,16 +1,33 @@
 from rest_framework import serializers
 from .models import CustomUser
+from django.conf import settings
 
 class CustomUserSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
     profile_pic = serializers.SerializerMethodField()
 
     def get_profile_pic(self, obj):
-        if obj.avatar_image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.avatar_image.url)
-            return obj.avatar_image.url
+        """
+        Returns the appropriate avatar URL:
+        - If custom avatar exists: return full URL to uploaded image
+        - Otherwise: return preset avatar path
+        """
+        # Check if user has uploaded a custom avatar
+        if obj.avatar_image and obj.avatar_image.name:
+            try:
+                request = self.context.get('request')
+                if request:
+                    # Build absolute URL using request context
+                    return request.build_absolute_uri(obj.avatar_image.url)
+                else:
+                    # Fallback: return relative path
+                    return obj.avatar_image.url
+            except Exception as e:
+                print(f"Error building avatar URL: {e}")
+                # Return preset if error
+                return obj.profile_pic
+        
+        # Return preset avatar path (e.g., '/images/bear.png')
         return obj.profile_pic
     
     class Meta:

@@ -73,11 +73,15 @@ export default function EditProfilePage() {
             formData.append('school_name', schoolName);
 
             if (customAvatar) {
+                console.log('📸 Uploading custom avatar:', customAvatar.name);
                 formData.append('avatar_image', customAvatar);
             } else if (selectedAvatar) {
+                console.log('🎨 Using preset avatar:', selectedAvatar);
                 formData.append('profile_pic', selectedAvatar);
             }
 
+            console.log('📤 Sending request to:', `${env.backendUrl}/api/users/profile/update/`);
+            
             const response = await fetch(`${env.backendUrl}/api/users/profile/update/`, {
                 method: 'PATCH',
                 headers: {
@@ -87,10 +91,14 @@ export default function EditProfilePage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update profile');
+                const errorText = await response.text();
+                console.error('❌ Server error:', response.status, errorText);
+                throw new Error(`Failed to update profile: ${response.status}`);
             }
 
             const updatedUser = await response.json();
+            console.log('✅ Profile updated:', updatedUser);
+            console.log('📷 Avatar URL returned:', updatedUser.profile_pic);
 
             if (updateProfile) {
                 updateProfile(updatedUser);
@@ -103,7 +111,7 @@ export default function EditProfilePage() {
             }, 1000);
 
         } catch (err: any) {
-            console.error(err);
+            console.error('❌ Error:', err);
             setError('Failed to update profile. Please try again.');
         } finally {
             setIsSaving(false);

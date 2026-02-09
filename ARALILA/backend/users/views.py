@@ -16,29 +16,50 @@ def profile_view(request):
     user = request.user
     user.refill_hearts_if_needed()  
     user.update_streak()
-    serializer = CustomUserSerializer(user)
+    serializer = CustomUserSerializer(user, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile_view(request):
-    """Update user profile (school_name, profile_pic, first_name, last_name)"""
+    """Update user profile (school_name, profile_pic, first_name, last_name, avatar_image)"""
     user = request.user
     allowed_fields = ['school_name', 'profile_pic', 'first_name', 'last_name']
     
-    # Handle custom avatar upload
-    if 'avatar_image' in request.FILES:
-        user.avatar_image = request.FILES['avatar_image']
-    elif 'profile_pic' in request.data:
-         # If user selected a preset avatar, clear the custom image
-         user.avatar_image = None
-    
-    for field in allowed_fields:
-        if field in request.data:
-            setattr(user, field, request.data[field])
-    user.save()
-    serializer = CustomUserSerializer(user, context={'request': request})
-    return Response(serializer.data)
+    try:
+        # Handle custom avatar upload
+        if 'avatar_image' in request.FILES:
+            custom_avatar = request.FILES['avatar_image']
+            print(f"📸 Avatar upload detected: {custom_avatar.name}, Size: {custom_avatar.size} bytes")
+            user.avatar_image = custom_avatar
+        elif 'profile_pic' in request.data:
+            # If user selected a preset avatar, clear the custom image
+            print(f"🎨 Preset avatar selected: {request.data['profile_pic']}")
+            user.avatar_image = None
+        
+        # Update text fields
+        for field in allowed_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        
+        user.save()
+        print(f"✅ Profile updated for user: {user.email}")
+        # Debug: print name fields so frontend updates can be verified
+        print(f"   - first_name: {user.first_name}")
+        print(f"   - last_name: {user.last_name}")
+        print(f"   - avatar_image: {user.avatar_image}")
+        print(f"   - profile_pic: {user.profile_pic}")
+        
+        serializer = CustomUserSerializer(user, context={'request': request})
+        response_data = serializer.data
+        print(f"📤 Response profile_pic URL: {response_data.get('profile_pic')}")
+        
+        return Response(response_data)
+    except Exception as e:
+        print(f"❌ Error updating profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=400)
 
 # -----------------------------
 # Heart endpoints
@@ -122,5 +143,5 @@ def complete_intro_view(request):
     user: CustomUser = request.user
     user.has_completed_intro = True
     user.save()
-    serializer = CustomUserSerializer(user)
+    serializer = CustomUserSerializer(user, context={'request': request})
     return Response(serializer.data)

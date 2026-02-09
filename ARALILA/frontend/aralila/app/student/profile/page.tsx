@@ -298,10 +298,14 @@ export default function UserProfile() {
                 <div className="relative w-full h-full">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 to-purple-600 blur-md opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative w-full h-full rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-xl">
-                    <img
+                    <Image
                       src={userData.avatarUrl}
                       alt="User Avatar"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      priority
+                      unoptimized={userData.avatarUrl?.startsWith('http') || userData.avatarUrl?.startsWith('/media')}
                     />
                   </div>
                   <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-600 text-white font-bold text-xs w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-900 z-20">
